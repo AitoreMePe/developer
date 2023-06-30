@@ -1,13 +1,21 @@
+# .gitignore
+
+node_modules/
+build/
+dist/
+*.log
 .env
-env
-__pycache__
-.vscode
-.idea
-/.idea/
-venv/
-
-# Ignore everything in the generated directory
-/generated/*
-
-# Don't ignore .gitkeep files in the generated directory
-!/generated/.gitkeep
+.DS_Store
+.idea/
+.vscode/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/public/pwa/
+/public/site.webmanifest
+/public/robots.txt
+/public/logo192.png
+/public/logo512.png
+/public/favicon.ico
+/public/index.html
+coverage/
