@@ -1,0 +1,12 @@
+#walletAddress, #connectionStatus {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+#walletAddress {
+    color: #4caf50;
+}
+
+#connectionStatus {
+    color: #f44336;
+}
