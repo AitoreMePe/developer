@@ -1,0 +1,21 @@
+{
+  "name": "ubleague",
+  "version": "1.0.0",
+  "description": "A complete online platform to host and manage all university eSports operations",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["eSports", "university", "platform"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^17.0.2",
+    "firebase": "^8.2.10",
+    "node": "^14.15.5",
+    "mongodb": "^3.6.6",
+    "express": "^4.17.1",
+    "ethers": "^5.1.4"
+  }
+}
