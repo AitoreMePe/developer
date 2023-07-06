@@ -1,0 +1,32 @@
+Steps to execute the project:
+
+1. Install Node.js and MongoDB on your machine.
+
+2. Navigate to the UBLeague directory in your terminal.
+
+3. Run 'npm install' to install all the dependencies listed in package.json.
+
+4. Start the MongoDB service on your machine.
+
+5. Run 'node src/server/Database.js' to set up the database and its models.
+
+6. Run 'node src/server/ServerAPIs.js' to start the server and the APIs.
+
+7. Open another terminal and navigate to the UBLeague directory.
+
+8. Run 'npm start' to start the React application.
+
+9. Open a web browser and go to 'http://localhost:3000' to view the application.
+
+10. Use the application with the following functionalities:
+   - Register and log in with your Gmail account.
+   - View player data, match schedule, standings, sponsor space, clips and articles in the main window.
+   - Search for players and view their details.
+   - Vote for the Most Valuable Player using your Ethereum wallet.
+   - View specific details of each game played.
+   - Put your players up for sale and transfer ownership through purchase in the transfers window.
+   - Offer and purchase sponsorships for players or teams in the sponsorship window.
+
+11. To stop the application, go back to the terminal and press 'Ctrl+C'.
+
+Note: Make sure to handle your Ethereum wallet securely and follow all necessary regulations for handling personal and financial data.
