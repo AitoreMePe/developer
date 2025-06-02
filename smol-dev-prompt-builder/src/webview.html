@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP will be dynamically updated by extension.ts to include nonces/hashes or specific URIs -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'nonce-webview-script'; img-src 'self' data:;">
+    <link rel="stylesheet" type="text/css" href="webview.css">
+    <title>Smol Dev Prompt Builder</title>
+</head>
+<body>
+    <h1>Smol Dev Prompt Builder</h1>
+
+    <section id="project-overview">
+        <label for="projectGoal">Project Overview/Goal:</label>
+        <textarea id="projectGoal" name="projectGoal" rows="4"></textarea>
+    </section>
+
+    <section id="key-features">
+        <label for="keyFeatures">Key Features/User Stories (one per line):</label>
+        <textarea id="keyFeatures" name="keyFeatures" rows="6"></textarea>
+    </section>
+
+    <section id="target-technologies">
+        <label for="targetTechnologies">Target Technologies/Frameworks:</label>
+        <textarea id="targetTechnologies" name="targetTechnologies" rows="3"></textarea>
+    </section>
+
+    <section id="non-functional-requirements">
+        <h2>Non-Functional Requirements:</h2>
+        <div>
+            <label for="nfrPerformance">Performance:</label>
+            <textarea id="nfrPerformance" name="nfrPerformance" rows="2"></textarea>
+        </div>
+        <div>
+            <label for="nfrSecurity">Security:</label>
+            <textarea id="nfrSecurity" name="nfrSecurity" rows="2"></textarea>
+        </div>
+        <div>
+            <label for="nfrLogging">Logging:</label>
+            <textarea id="nfrLogging" name="nfrLogging" rows="2"></textarea>
+        </div>
+    </section>
+
+    <section id="existing-code-context">
+        <label for="existingCode">Existing Code Context <span class="optional-text">(Optional)</span>:</label>
+        <textarea id="existingCode" name="existingCode" rows="4"></textarea>
+    </section>
+
+    <section id="file-structure-preferences">
+        <label for="fileStructure">File/Folder Structure Preferences <span class="optional-text">(Optional)</span>:</label>
+        <textarea id="fileStructure" name="fileStructure" rows="4"></textarea>
+    </section>
+
+    <button id="generateButton">Generate prompt.md</button>
+
+    <div id="logMessages">
+        <h2>Log Messages:</h2>
+        <!-- Messages from extension will be logged here by the script -->
+    </div>
+
+    <script nonce="webview-script">
+        const vscode = acquireVsCodeApi();
+
+        // Function to gather data from form inputs
+        function getPromptData() {
+            const projectGoal = document.getElementById('projectGoal').value;
+            const keyFeatures = document.getElementById('keyFeatures').value;
+            const targetTechnologies = document.getElementById('targetTechnologies').value;
+
+            const nfrPerformance = document.getElementById('nfrPerformance').value;
+            const nfrSecurity = document.getElementById('nfrSecurity').value;
+            const nfrLogging = document.getElementById('nfrLogging').value;
+
+            const existingCode = document.getElementById('existingCode').value;
+            const fileStructure = document.getElementById('fileStructure').value;
+
+            return {
+                projectOverview: projectGoal, // Renamed for clarity to match earlier design docs
+                keyFeatures: keyFeatures,
+                targetTechnologies: targetTechnologies,
+                nonFunctionalRequirements: {
+                    performance: nfrPerformance,
+                    security: nfrSecurity,
+                    logging: nfrLogging
+                },
+                existingCodeContext: existingCode, // Renamed for clarity
+                fileStructurePreferences: fileStructure // Renamed for clarity
+            };
+        }
+
+        // Event listener for messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            console.log("Message received from extension:", message);
+
+            const logDiv = document.getElementById('logMessages');
+            if (logDiv) { // Check if logDiv exists
+                const p = document.createElement('p');
+                p.textContent = 'Received from extension: ' + JSON.stringify(message);
+                logDiv.appendChild(p);
+            }
+        });
+
+        // Event listener for the "Generate prompt.md" button
+        const generateButton = document.getElementById('generateButton');
+        if (generateButton) {
+            generateButton.addEventListener('click', () => {
+                const promptData = getPromptData();
+                vscode.postMessage({
+                    command: 'generatePrompt',
+                    data: promptData
+                });
+
+                // Optional: Log what was sent
+                console.log("Sent to extension:", { command: 'generatePrompt', data: promptData });
+                const logDiv = document.getElementById('logMessages');
+                if (logDiv) {
+                    const p = document.createElement('p');
+                    p.textContent = 'Sent to extension: ' + JSON.stringify(promptData.projectOverview).substring(0, 50) + "...";
+                    logDiv.appendChild(p);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

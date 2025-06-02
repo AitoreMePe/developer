@@ -1,0 +1,10 @@
+node_modules/**
+out/**
+src/**
+.vscode-test/**
+tsconfig.json
+webpack.config.js
+.eslintrc.json
+*.log
+*.vsix
+.git*
