@@ -43,6 +43,49 @@ python main.py --prompt prompt.md # for longer prompts, move them into a markdow
 python main.py --prompt prompt.md --debug True # for debugging
 ```
 
+#### Using Local LLMs
+
+You can configure `smol_dev` to use Large Language Models running locally via tools like Ollama or LM Studio, provided they offer an OpenAI-compatible API endpoint.
+
+**CLI Flags for Local LLMs:**
+
+*   `--llm_provider <provider>`: Specify the LLM provider. E.g., 'openai', 'ollama', 'lmstudio'. If 'ollama' or 'lmstudio' is chosen and no `--api_key` is set, a default placeholder key (e.g., "local") will be used.
+*   `--api_base_url <url>`: The base URL for the LLM API endpoint (e.g., `http://localhost:11434/v1` for Ollama, `http://localhost:1234/v1` for LM Studio).
+*   `--api_key <key>`: Your API key for the LLM provider. This is optional and typically not needed for local providers like Ollama/LMStudio if they are not configured with one. If not set, `smol_dev` relies on the `OPENAI_API_KEY` environment variable for the 'openai' provider.
+*   `--model <model_name>`: Specify the model identifier as recognized by your local LLM server (e.g., `mistral:7b-instruct-q4_K_M` for Ollama, `local-model` or a specific GGUF model name for LM Studio).
+
+**Example Commands:**
+
+*   **Ollama:**
+    ```bash
+    # Ensure Ollama is running and you have pulled a model (e.g., ollama pull mistral:7b-instruct-q4_K_M)
+    # Replace <your-ollama-model> with the actual model name.
+    python smol_dev/main.py \
+      --prompt "a simple python script that prints hello world" \
+      --llm_provider ollama \
+      --api_base_url http://localhost:11434/v1 \
+      --model <your-ollama-model> \
+      --debug True
+    ```
+
+*   **LM Studio:**
+    ```bash
+    # Ensure LM Studio is running, a model is loaded, and the server is started.
+    # Replace <your-lmstudio-model> with the model identifier from LM Studio.
+    python smol_dev/main.py \
+      --prompt "a simple python script that prints hello world" \
+      --llm_provider lmstudio \
+      --api_base_url http://localhost:1234/v1 \
+      --model <your-lmstudio-model> \
+      --debug True
+    ```
+
+**Important Notes for Local LLMs:**
+
+*   You are responsible for installing, configuring, and running your local LLM server (Ollama, LM Studio, etc.) and downloading the models.
+*   The performance, capabilities, and context window sizes of local LLMs can vary significantly. You might need to adjust your prompts or expectations compared to using large cloud-based models.
+*   Ensure the `--model` name precisely matches the identifier your local server uses for the desired model.
+
 <details>
   <summary>
 This lets you develop apps as a human in the loop, as per the original version of smol developer.
