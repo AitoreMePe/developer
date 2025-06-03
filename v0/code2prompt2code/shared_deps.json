@@ -1,0 +1,80 @@
+{
+  "domElementIds": [
+    "userPrompt",
+    "stylePrompt",
+    "maxTokens",
+    "sendButton",
+    "content",
+    "loadingIndicator"
+  ],
+  "functionSignatures": [
+    {
+      "name": "requestAnthropicSummary",
+      "description": "Requests a summary from an AI service, likely Anthropic.",
+      "parameters": [
+        {
+          "name": "promptText",
+          "type": "string",
+          "description": "The text prompt to be summarized."
+        },
+        {
+          "name": "stylePrompt",
+          "type": "string",
+          "description": "The style prompt for the summary generation."
+        },
+        {
+          "name": "maxTokens",
+          "type": "number",
+          "description": "The maximum number of tokens for the summary."
+        }
+      ],
+      "returns": {
+        "type": "Promise<string>",
+        "description": "A promise that resolves to the summary text."
+      }
+    },
+    {
+      "name": "storePageContent",
+      "description": "Stores the page content.",
+      "parameters": [
+        {
+          "name": "pageData",
+          "type": "pageContent",
+          "description": "The page content data to store, conforming to the 'pageContent' schema."
+        }
+      ],
+      "returns": {
+        "type": "void",
+        "description": "This function likely does not return a value."
+      }
+    }
+  ],
+  "globalVariables": [],
+  "messageNames": [
+    {
+      "name": "storePageContent",
+      "description": "Message to trigger storing of current page content."
+    },
+    {
+      "name": "getPageContent",
+      "description": "Message to request retrieval of current page content."
+    }
+  ],
+  "dataSchemas": {
+    "pageContent": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": ["title", "content"],
+      "description": "Schema for representing basic page content with a title and main content body."
+    }
+  },
+  "version": "1.0",
+  "notes": "Initial version of shared dependencies based on shared_dependencies.md"
+}
