@@ -43,6 +43,27 @@ python main.py --prompt prompt.md # for longer prompts, move them into a markdow
 python main.py --prompt prompt.md --debug True # for debugging
 ```
 
+### Auto-Correction Feature
+
+`smol-developer` includes an experimental auto-correction feature. If enabled, after the initial code generation:
+1. The system will attempt to "execute" the generated code (currently, this involves basic checks like file existence for specific project types).
+2. If this execution step reports errors, `smol-developer` will use an LLM to analyze the errors and the generated code to suggest a fix for one file.
+3. The suggested fix is automatically applied.
+4. The system will then re-execute the code to see if the fix was successful.
+5. This process can loop for a configurable number of attempts.
+
+To use this feature, you can use the following command-line arguments:
+
+*   `--enable-auto-correction`: This flag enables the auto-correction loop. Disabled by default.
+*   `--max-correction-attempts <N>`: Sets the maximum number of correction attempts (e.g., 3, 5). Defaults to 3.
+*   `--debug-model <model_name>`: Specifies the LLM model to use for generating debugging suggestions (e.g., `gpt-4-turbo`, `gpt-4-0613`). This can be different from the model used for initial code generation.
+
+**Example:**
+
+```bash
+python main.py --prompt "your prompt here" --enable-auto-correction --max-correction-attempts 5 --debug-model gpt-4-turbo
+```
+
 <details>
   <summary>
 This lets you develop apps as a human in the loop, as per the original version of smol developer.
