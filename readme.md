@@ -72,6 +72,21 @@ Loop until happiness is attained. Notice that AI is only used as long as it is a
 
 In this way you can use your clone of this repo itself to prototype/develop your app.
 
+## Prompt Templates for LLM Studio
+
+We provide a collection of curated prompts specifically designed for use with LLM Studio and other similar large language model interfaces. These templates can help you get started with common tasks and provide a good foundation for developing your own more specific prompts.
+
+You can find these templates in the `prompt_templates` directory. Currently, it includes:
+
+- **`prompt_templates/llm_studio_templates.md`**: Contains a variety of prompts for tasks such as:
+    - Code generation (Python functions, HTML/CSS components, SQL queries)
+    - Text summarization (general articles, key information extraction, bullet-point summaries)
+    - Question answering with context
+    - Creative writing (story generation, poem generation, dialogue writing)
+    - General purpose utilities (brainstorming, rephrasing, classification)
+
+We encourage you to explore these templates and adapt them to your needs.
+
 ### In Library mode
 
 This is the new thing in smol developer v1! Add `smol developer` to your own projects!
