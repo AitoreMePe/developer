@@ -13,3 +13,4 @@ venv/
 !/generated/.gitkeep
 
 workspace
+dist/
