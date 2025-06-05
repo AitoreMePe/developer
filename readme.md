@@ -166,6 +166,13 @@ async with ApiClient() as api_client:
 
 ```
 
+### Running tests
+Use [pytest](https://pytest.org) to run the test suite:
+
+```bash
+poetry run pytest
+```
+
 ## examples/prompt gallery
 
 - [6 minute video demo](https://youtu.be/UCo7YeTy-aE) - (sorry for sped up audio, we were optimizing for twitter, bad call)
