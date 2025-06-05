@@ -32,12 +32,13 @@ async def _generate_file_paths(task: Task, step: Step) -> Step:
     shared_deps = step.additional_properties["shared_deps"]
     file_paths = specify_file_paths(task.input, shared_deps)
     for file_path in file_paths[:-1]:
+        # create a step for each file and store its path for the code generation stage
         await Agent.db.create_step(
             task.task_id,
             f"Generate code for {file_path}",
             additional_properties={
                 "shared_deps": shared_deps,
-                "file_path": file_paths[-1],
+                "file_path": file_path,
             },
         )
 
