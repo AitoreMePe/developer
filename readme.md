@@ -45,6 +45,8 @@ python main.py --prompt prompt.md # for longer prompts, move them into a markdow
 python main.py --prompt prompt.md --debug True # for debugging
 # using a local HuggingFace model
 python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-or-path>
+# Models loaded via the hf backend are cached for the life of the process to avoid
+# repeatedly loading the tokenizer and model from disk.
 # if using LMStudio or Ollama set environment variables to point transformers to the model directory
 ```
 

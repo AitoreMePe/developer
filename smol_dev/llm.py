@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 try:
     import openai
@@ -10,6 +10,8 @@ try:
 except Exception:  # pragma: no cover - transformers optional
     AutoModelForCausalLM = None  # type: ignore
     AutoTokenizer = None  # type: ignore
+
+_hf_models: Dict[str, Tuple[object, object]] = {}
 
 
 def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "openai", **kwargs) -> str:
@@ -27,8 +29,13 @@ def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "op
     elif backend == "hf":
         if AutoModelForCausalLM is None or AutoTokenizer is None:
             raise ImportError("transformers package not available")
-        tokenizer = AutoTokenizer.from_pretrained(model)
-        model_obj = AutoModelForCausalLM.from_pretrained(model)
+
+        tokenizer, model_obj = _hf_models.get(model, (None, None))
+        if tokenizer is None or model_obj is None:
+            tokenizer = AutoTokenizer.from_pretrained(model)
+            model_obj = AutoModelForCausalLM.from_pretrained(model)
+            _hf_models[model] = (tokenizer, model_obj)
+
         prompt_text = "".join(f"{m['role']}: {m['content']}\n" for m in messages)
         input_ids = tokenizer.encode(prompt_text, return_tensors="pt")
         max_new_tokens = kwargs.get("max_tokens", 256)
