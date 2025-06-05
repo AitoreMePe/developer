@@ -32,21 +32,31 @@ After the [successful initial v0 launch](https://twitter.com/swyx/status/1657578
 # install
 git clone https://github.com/smol-ai/developer.git
 cd developer
-poetry install # install dependencies. pip install poetry if you need
-# for huggingface backend also install transformers and download a model
-# e.g. `pip install transformers` and `huggingface-cli download <repo> --local-dir <path>`
+poetry install
+
+# download a model for the HuggingFace backend
+pip install huggingface-hub  # provides `huggingface-cli` if not already installed
+huggingface-cli download <repo> --local-dir ./local-model
+
+# point transformers to the downloaded model
+export HF_HOME=$(pwd)/local-model
+export TRANSFORMERS_CACHE=$HF_HOME
 
 # run
 python main.py "a HTML/JS/CSS Tic Tac Toe Game" # defaults to gpt-4-0613
 # python main.py "a HTML/JS/CSS Tic Tac Toe Game" --model=gpt-3.5-turbo-0613
 
 # other cli flags
-python main.py --prompt prompt.md # for longer prompts, move them into a markdown file
-python main.py --prompt prompt.md --debug True # for debugging
-# using a local HuggingFace model
-python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-or-path>
-# if using LMStudio or Ollama set environment variables to point transformers to the model directory
+python main.py --prompt prompt.md               # use a markdown prompt file
+python main.py --prompt prompt.md --debug True  # enable debugging
+python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model $HF_HOME
 ```
+
+The downloaded folder should contain the standard HuggingFace files
+(`config.json`, tokenizer files, and weight files such as
+`pytorch_model.bin` or `.safetensors`).  These extra dependencies and the
+environment variables allow running with `--backend hf` or tools like
+LMStudio/Ollama.
 
 <details>
   <summary>
