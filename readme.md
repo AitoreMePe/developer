@@ -33,6 +33,8 @@ After the [successful initial v0 launch](https://twitter.com/swyx/status/1657578
 git clone https://github.com/smol-ai/developer.git
 cd developer
 poetry install # install dependencies. pip install poetry if you need
+# for huggingface backend also install transformers and download a model
+# e.g. `pip install transformers` and `huggingface-cli download <repo> --local-dir <path>`
 
 # run
 python main.py "a HTML/JS/CSS Tic Tac Toe Game" # defaults to gpt-4-0613
@@ -41,6 +43,9 @@ python main.py "a HTML/JS/CSS Tic Tac Toe Game" # defaults to gpt-4-0613
 # other cli flags
 python main.py --prompt prompt.md # for longer prompts, move them into a markdown file
 python main.py --prompt prompt.md --debug True # for debugging
+# using a local HuggingFace model
+python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-or-path>
+# if using LMStudio or Ollama set environment variables to point transformers to the model directory
 ```
 
 <details>

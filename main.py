@@ -1,7 +1,5 @@
 import sys
 
-from smol_dev.prompts import plan, specify_file_paths, generate_code_sync
-from smol_dev.utils import generate_folder, write_file
 from smol_dev.main import main
 import argparse
 
@@ -32,6 +30,8 @@ if __name__ == "__main__":
         parser.add_argument("--model", type=str, default="gpt-4-0613", help="model to use. can also use gpt-3.5-turbo-0613")
         parser.add_argument("--generate_folder_path", type=str, default="generated", help="Path of the folder for generated code.")
         parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
+        parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
+        parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
@@ -47,4 +47,4 @@ if __name__ == "__main__":
         # This is in case we're just calling the main function directly with a prompt
         main(prompt=prompt)
     else:
-        main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug, model=args.model)
+        main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug, model=args.model, backend=args.backend, hf_model=args.hf_model)
