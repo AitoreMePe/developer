@@ -35,3 +35,16 @@ def test_retry_plan():
         result = prompts.plan("prompt")
     assert result == "plan-text"
     assert call_count["count"] == 3
+
+
+def test_generate_code_uses_file_prompt():
+    captured = {}
+
+    def fake_generate_chat(messages, *args, **kwargs):
+        captured["messages"] = messages
+        return "console.log('hi')"
+
+    with patch.object(prompts, "generate_chat", side_effect=fake_generate_chat):
+        prompts.generate_code_sync("base", "plan", "file.js", file_prompt="extra")
+
+    assert any(m.get("content") == "extra" for m in captured["messages"])

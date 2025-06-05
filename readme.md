@@ -43,6 +43,7 @@ python main.py "a HTML/JS/CSS Tic Tac Toe Game" # defaults to gpt-4-0613
 # other cli flags
 python main.py --prompt prompt.md # for longer prompts, move them into a markdown file
 python main.py --prompt prompt.md --debug True # for debugging
+python main.py --prompt prompt.md --file-prompts-dir ./my_prompts # use per-file prompt overrides
 # using a local HuggingFace model
 python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-or-path>
 # Models loaded via the hf backend are cached for the life of the process to avoid
@@ -247,8 +248,8 @@ The feedback loop is very slow right now (`time` says about 2-4 mins to generate
 
 things to try/would accept open issue discussions and PRs:
 
-- **specify .md files for each generated file**, with further prompts that could finetune the output in each of them
-  - so basically like `popup.html.md` and `content_script.js.md` and so on
+- **specify .md files for each generated file** (now implemented via `--file-prompts-dir`), with further prompts that can finetune the output in each of them
+  - create files like `popup.html.md` or `content_script.js.md` in the prompts directory to influence the respective generated files
 - **bootstrap the `prompt.md`** for existing codebases - write a script to read in a codebase and write a descriptive, bullet pointed prompt that generates it
   - done by `smol pm`, but its not very good yet - would love for some focused polish/effort until we have quine smol developer that can generate itself lmao
 - **ability to install its own dependencies**

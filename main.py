@@ -32,6 +32,8 @@ if __name__ == "__main__":
         parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
         parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
         parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
+        parser.add_argument("--file-prompts-dir", type=str, default=".",
+                            help="Directory containing per-file prompt markdown files")
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
@@ -47,4 +49,6 @@ if __name__ == "__main__":
         # This is in case we're just calling the main function directly with a prompt
         main(prompt=prompt)
     else:
-        main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug, model=args.model, backend=args.backend, hf_model=args.hf_model)
+        main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug,
+             model=args.model, backend=args.backend, hf_model=args.hf_model,
+             file_prompts_dir=args.file_prompts_dir)

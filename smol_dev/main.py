@@ -1,5 +1,6 @@
 import sys
 import time
+import os
 
 from smol_dev.prompts import plan, specify_file_paths, generate_code_sync
 from smol_dev.utils import generate_folder, write_file
@@ -9,7 +10,8 @@ import argparse
 defaultmodel = "gpt-4-0613"
 
 def main(prompt, generate_folder_path="generated", debug=False, model: str = defaultmodel,
-         backend: str = "openai", hf_model: str | None = None):
+         backend: str = "openai", hf_model: str | None = None,
+         file_prompts_dir: str = "."):
     # create generateFolder folder if doesnt exist
     generate_folder(generate_folder_path)
 
@@ -50,6 +52,12 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
 
     # loop through file_paths array and generate code for each file
     for file_path in file_paths:
+        prompt_path = f"{file_prompts_dir}/{file_path}.md"
+        file_specific_prompt = None
+        if os.path.exists(prompt_path):
+            with open(prompt_path, "r") as fp:
+                file_specific_prompt = fp.read()
+
         file_path = f"{generate_folder_path}/{file_path}"  # just append prefix
         if debug:
             print(f"--------generate_code: {file_path} ---------")
@@ -63,7 +71,9 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
                 stream_handler.count += len(chunk)
         stream_handler.count = 0
         stream_handler.onComplete = lambda x: sys.stdout.write("\033[0m\n") # remove the stdout line when streaming is complete
-        code = generate_code_sync(prompt, shared_deps, file_path, stream_handler, model=model_name, backend=backend)
+        code = generate_code_sync(prompt, shared_deps, file_path, stream_handler,
+                                  model=model_name, backend=backend,
+                                  file_prompt=file_specific_prompt)
         if debug:
             print(code)
         if debug:
@@ -99,10 +109,13 @@ if __name__ == "__main__":
         parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
         parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
         parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
+        parser.add_argument("--file-prompts-dir", type=str, default=".",
+                            help="Directory containing per-file prompt markdown files")
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
         
     print(prompt)
         
-    main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug, backend=args.backend, hf_model=args.hf_model)
+    main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug,
+         backend=args.backend, hf_model=args.hf_model, file_prompts_dir=args.file_prompts_dir)
