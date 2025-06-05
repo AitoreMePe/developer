@@ -8,7 +8,8 @@ import argparse
 # model = "gpt-3.5-turbo-0613"
 defaultmodel = "gpt-4-0613"
 
-def main(prompt, generate_folder_path="generated", debug=False, model: str = defaultmodel):
+def main(prompt, generate_folder_path="generated", debug=False, model: str = defaultmodel,
+         backend: str = "openai", hf_model: str | None = None):
     # create generateFolder folder if doesnt exist
     generate_folder(generate_folder_path)
 
@@ -30,7 +31,8 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
         stream_handler.count = 0
         stream_handler.onComplete = lambda x: sys.stdout.write("\033[0m\n") # remove the stdout line when streaming is complete
 
-        shared_deps = plan(prompt, stream_handler, model=model)
+        model_name = hf_model if backend == "hf" else model
+        shared_deps = plan(prompt, stream_handler, model=model_name, backend=backend)
     if debug:
         print(shared_deps)
     write_file(f"{generate_folder_path}/shared_deps.md", shared_deps)
@@ -40,7 +42,7 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
     # specify file_paths
     if debug:
         print("--------specify_filePaths---------")
-    file_paths = specify_file_paths(prompt, shared_deps, model=model)
+    file_paths = specify_file_paths(prompt, shared_deps, model=model_name, backend=backend)
     if debug:
         print(file_paths)
     if debug:
@@ -61,7 +63,7 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
                 stream_handler.count += len(chunk)
         stream_handler.count = 0
         stream_handler.onComplete = lambda x: sys.stdout.write("\033[0m\n") # remove the stdout line when streaming is complete
-        code = generate_code_sync(prompt, shared_deps, file_path, stream_handler, model=model)
+        code = generate_code_sync(prompt, shared_deps, file_path, stream_handler, model=model_name, backend=backend)
         if debug:
             print(code)
         if debug:
@@ -95,10 +97,12 @@ if __name__ == "__main__":
         parser.add_argument("--prompt", type=str, required=True, help="Prompt for the app to be created.")
         parser.add_argument("--generate_folder_path", type=str, default="generated", help="Path of the folder for generated code.")
         parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
+        parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
+        parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
         
     print(prompt)
         
-    main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug)
+    main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug, backend=args.backend, hf_model=args.hf_model)
