@@ -4,12 +4,52 @@ import json
 from typing import List, Optional, Callable, Any
 
 from smol_dev.llm import generate_chat
-from openai_function_call import openai_function
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+try:  # pragma: no cover - openai_function_call is optional
+    from openai_function_call import openai_function
+except Exception:  # pragma: no cover - simple fallback
+    def openai_function(func: Callable) -> Callable:
+        func.openai_schema = {"name": func.__name__}
+        return func
+try:  # pragma: no cover - tenacity is optional
+    from tenacity import (
+        retry,
+        stop_after_attempt,
+        wait_random_exponential,
+    )
+except Exception:  # pragma: no cover - minimal fallback when tenacity missing
+    class stop_after_attempt:  # type: ignore
+        def __init__(self, max_attempt_number: int):
+            self.max_attempt_number = max_attempt_number
+
+    def wait_random_exponential(*args: Any, **kwargs: Any) -> None:
+        return None
+
+    def retry(wait: Any = None, stop: Any = None):
+        def decorator(func: Callable):
+            if asyncio.iscoroutinefunction(func):
+                async def wrapper(*args: Any, **kwargs: Any):
+                    attempts = 0
+                    max_attempts = getattr(stop, "max_attempt_number", 1)
+                    while True:
+                        try:
+                            return await func(*args, **kwargs)
+                        except Exception:
+                            attempts += 1
+                            if attempts >= max_attempts:
+                                raise
+            else:
+                def wrapper(*args: Any, **kwargs: Any):
+                    attempts = 0
+                    max_attempts = getattr(stop, "max_attempt_number", 1)
+                    while True:
+                        try:
+                            return func(*args, **kwargs)
+                        except Exception:
+                            attempts += 1
+                            if attempts >= max_attempts:
+                                raise
+            return wrapper
+        return decorator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,6 +72,7 @@ def file_paths(files_to_edit: List[str]) -> List[str]:
     return files_to_edit
 
 
+@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 def specify_file_paths(prompt: str, plan: str, model: str = 'gpt-3.5-turbo-0613', backend: str = "openai"):
     messages = [
         {
@@ -61,6 +102,7 @@ def specify_file_paths(prompt: str, plan: str, model: str = 'gpt-3.5-turbo-0613'
         return [line.strip("- *") for line in response_text.splitlines() if line.strip()]
 
 
+@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 def plan(prompt: str, stream_handler: Optional[Callable[[bytes], None]] = None, model: str='gpt-3.5-turbo-0613', extra_messages: List[Any] = [], backend: str = "openai"):
     messages = [
             {
