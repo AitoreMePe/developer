@@ -131,7 +131,8 @@ def plan(prompt: str, stream_handler: Optional[Callable[[bytes], None]] = None, 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 async def generate_code(prompt: str, plan: str, current_file: str, stream_handler: Optional[Callable[Any, Any]] = None,
-                        model: str = 'gpt-3.5-turbo-0613', backend: str = "openai") -> str:
+                        model: str = 'gpt-3.5-turbo-0613', backend: str = "openai",
+                        file_prompt: Optional[str] | None = None) -> str:
     messages = [
             {
                 "role": "system",
@@ -155,6 +156,7 @@ async def generate_code(prompt: str, plan: str, current_file: str, stream_handle
                 "role": "user",
                 "content": f""" the app prompt is: {prompt} """,
             },
+            *([] if file_prompt is None else [{"role": "user", "content": file_prompt}]),
             {
                 "role": "user",
                 "content": f"""
@@ -193,6 +195,7 @@ async def generate_code(prompt: str, plan: str, current_file: str, stream_handle
 
 def generate_code_sync(prompt: str, plan: str, current_file: str,
                        stream_handler: Optional[Callable[Any, Any]] = None,
-                       model: str = 'gpt-3.5-turbo-0613', backend: str = "openai") -> str:
+                       model: str = 'gpt-3.5-turbo-0613', backend: str = "openai",
+                       file_prompt: Optional[str] | None = None) -> str:
     loop = asyncio.get_event_loop()
-    return loop.run_until_complete(generate_code(prompt, plan, current_file, stream_handler, model, backend))
+    return loop.run_until_complete(generate_code(prompt, plan, current_file, stream_handler, model, backend, file_prompt))
