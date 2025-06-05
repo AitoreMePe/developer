@@ -256,7 +256,8 @@ things to try/would accept open issue discussions and PRs:
   - this leaks into depending on the execution environment, which we all know is the path to dependency madness. how to avoid? dockerize? nix? [web container](https://twitter.com/litbid/status/1658154530385670150)?
   - Modal has an interesting possibility: generate functions that speak modal which also solves the dependency thing https://twitter.com/akshat_b/status/1658146096902811657
 - **self-heal** by running the code itself and use errors as information for reprompting
-  - however its a bit hard to get errors from the chrome extension environment so we did not try this
+  - enable with `--self-heal` to execute the generated `main.py` after scaffolding
+  - missing Python packages are installed automatically with `pip` inside the optional `--venv-path` environment
 - **using anthropic as the coding layer**
   - you can run `modal run anthropic.py --prompt prompt.md --outputdir=anthropic` to try it
   - but it doesnt work because anthropic doesnt follow instructions to generate file code very well.

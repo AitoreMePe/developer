@@ -4,14 +4,25 @@ import os
 
 from smol_dev.prompts import plan, specify_file_paths, generate_code_sync
 from smol_dev.utils import generate_folder, write_file
+from typing import Optional
 import argparse
 
 # model = "gpt-3.5-turbo-0613"
 defaultmodel = "gpt-4-0613"
 
-def main(prompt, generate_folder_path="generated", debug=False, model: str = defaultmodel,
-         backend: str = "openai", hf_model: str | None = None,
-         file_prompts_dir: str = "."):
+
+def main(
+    prompt,
+    generate_folder_path: str = "generated",
+    debug: bool = False,
+    model: str = defaultmodel,
+    backend: str = "openai",
+    hf_model: str | None = None,
+    file_prompts_dir: str = ".",
+    self_heal: bool = False,
+    venv_path: Optional[str] = None,
+    container_runtime: Optional[str] = None,
+):
     # create generateFolder folder if doesnt exist
     generate_folder(generate_folder_path)
 
@@ -21,17 +32,25 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
     with open(f"{generate_folder_path}/shared_deps.md", "wb") as f:
 
         start_time = time.time()
+
         def stream_handler(chunk):
             f.write(chunk)
             if debug:
                 end_time = time.time()
 
-                sys.stdout.write("\r \033[93mChars streamed\033[0m: {}. \033[93mChars per second\033[0m: {:.2f}".format(stream_handler.count, stream_handler.count / (end_time - start_time)))
+                sys.stdout.write(
+                    "\r \033[93mChars streamed\033[0m: {}. \033[93mChars per second\033[0m: {:.2f}".format(
+                        stream_handler.count,
+                        stream_handler.count / (end_time - start_time),
+                    )
+                )
                 sys.stdout.flush()
                 stream_handler.count += len(chunk)
 
         stream_handler.count = 0
-        stream_handler.onComplete = lambda x: sys.stdout.write("\033[0m\n") # remove the stdout line when streaming is complete
+        stream_handler.onComplete = lambda x: sys.stdout.write(
+            "\033[0m\n"
+        )  # remove the stdout line when streaming is complete
 
         model_name = hf_model if backend == "hf" else model
         shared_deps = plan(prompt, stream_handler, model=model_name, backend=backend)
@@ -44,7 +63,9 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
     # specify file_paths
     if debug:
         print("--------specify_filePaths---------")
-    file_paths = specify_file_paths(prompt, shared_deps, model=model_name, backend=backend)
+    file_paths = specify_file_paths(
+        prompt, shared_deps, model=model_name, backend=backend
+    )
     if debug:
         print(file_paths)
     if debug:
@@ -63,25 +84,55 @@ def main(prompt, generate_folder_path="generated", debug=False, model: str = def
             print(f"--------generate_code: {file_path} ---------")
 
         start_time = time.time()
+
         def stream_handler(chunk):
             if debug:
                 end_time = time.time()
-                sys.stdout.write("\r \033[93mChars streamed\033[0m: {}. \033[93mChars per second\033[0m: {:.2f}".format(stream_handler.count, stream_handler.count / (end_time - start_time)))
+                sys.stdout.write(
+                    "\r \033[93mChars streamed\033[0m: {}. \033[93mChars per second\033[0m: {:.2f}".format(
+                        stream_handler.count,
+                        stream_handler.count / (end_time - start_time),
+                    )
+                )
                 sys.stdout.flush()
                 stream_handler.count += len(chunk)
+
         stream_handler.count = 0
-        stream_handler.onComplete = lambda x: sys.stdout.write("\033[0m\n") # remove the stdout line when streaming is complete
-        code = generate_code_sync(prompt, shared_deps, file_path, stream_handler,
-                                  model=model_name, backend=backend,
-                                  file_prompt=file_specific_prompt)
+        stream_handler.onComplete = lambda x: sys.stdout.write(
+            "\033[0m\n"
+        )  # remove the stdout line when streaming is complete
+        code = generate_code_sync(
+            prompt,
+            shared_deps,
+            file_path,
+            stream_handler,
+            model=model_name,
+            backend=backend,
+            file_prompt=file_specific_prompt,
+        )
         if debug:
             print(code)
         if debug:
             print(f"--------generate_code: {file_path} ---------")
         # create file with code content
         write_file(file_path, code)
-        
+
     print("--------smol dev done!---------")
+
+    if self_heal:
+        entry = os.path.join(generate_folder_path, "main.py")
+        if os.path.exists(entry):
+            from smol_dev.self_heal import run_and_fix
+
+            result = run_and_fix(
+                entry, env_path=venv_path, container_runtime=container_runtime
+            )
+            if result.get("stdout"):
+                print(result["stdout"])
+            if result.get("stderr"):
+                print(result["stderr"], file=sys.stderr)
+        else:
+            print(f"Self-heal requested but {entry} not found.")
 
 
 # for local testing
@@ -102,20 +153,71 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         prompt = sys.argv[1]
     else:
-        
+
         parser = argparse.ArgumentParser()
-        parser.add_argument("--prompt", type=str, required=True, help="Prompt for the app to be created.")
-        parser.add_argument("--generate_folder_path", type=str, default="generated", help="Path of the folder for generated code.")
-        parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
-        parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
-        parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
-        parser.add_argument("--file-prompts-dir", type=str, default=".",
-                            help="Directory containing per-file prompt markdown files")
+        parser.add_argument(
+            "--prompt",
+            type=str,
+            required=True,
+            help="Prompt for the app to be created.",
+        )
+        parser.add_argument(
+            "--generate_folder_path",
+            type=str,
+            default="generated",
+            help="Path of the folder for generated code.",
+        )
+        parser.add_argument(
+            "--debug", type=bool, default=False, help="Enable or disable debug mode."
+        )
+        parser.add_argument(
+            "--backend",
+            choices=["openai", "hf"],
+            default="openai",
+            help="LLM backend to use",
+        )
+        parser.add_argument(
+            "--hf-model",
+            type=str,
+            help="Local path or HF repo id for transformers model",
+        )
+        parser.add_argument(
+            "--file-prompts-dir",
+            type=str,
+            default=".",
+            help="Directory containing per-file prompt markdown files",
+        )
+        parser.add_argument(
+            "--self-heal",
+            action="store_true",
+            help="Run generated code and attempt to install missing dependencies",
+        )
+        parser.add_argument(
+            "--venv-path",
+            type=str,
+            default=None,
+            help="Path to virtualenv for executing generated code",
+        )
+        parser.add_argument(
+            "--container-runtime",
+            type=str,
+            default=None,
+            help="Container runtime to use for execution",
+        )
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
-        
+
     print(prompt)
-        
-    main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug,
-         backend=args.backend, hf_model=args.hf_model, file_prompts_dir=args.file_prompts_dir)
+
+    main(
+        prompt=prompt,
+        generate_folder_path=args.generate_folder_path,
+        debug=args.debug,
+        backend=args.backend,
+        hf_model=args.hf_model,
+        file_prompts_dir=args.file_prompts_dir,
+        self_heal=args.self_heal,
+        venv_path=args.venv_path,
+        container_runtime=args.container_runtime,
+    )

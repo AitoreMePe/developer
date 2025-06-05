@@ -4,8 +4,6 @@ from smol_dev.main import main
 import argparse
 
 
-
-
 # for local testing
 # python main.py --prompt "a simple JavaScript/HTML/CSS/Canvas app that is a one player game of PONG..." --generate_folder_path "generated" --debug True
 
@@ -26,14 +24,58 @@ if __name__ == "__main__":
         args = None
     else:
         parser = argparse.ArgumentParser()
-        parser.add_argument("--prompt", type=str, help="Prompt for the app to be created.")
-        parser.add_argument("--model", type=str, default="gpt-4-0613", help="model to use. can also use gpt-3.5-turbo-0613")
-        parser.add_argument("--generate_folder_path", type=str, default="generated", help="Path of the folder for generated code.")
-        parser.add_argument("--debug", type=bool, default=False, help="Enable or disable debug mode.")
-        parser.add_argument("--backend", choices=["openai", "hf"], default="openai", help="LLM backend to use")
-        parser.add_argument("--hf-model", type=str, help="Local path or HF repo id for transformers model")
-        parser.add_argument("--file-prompts-dir", type=str, default=".",
-                            help="Directory containing per-file prompt markdown files")
+        parser.add_argument(
+            "--prompt", type=str, help="Prompt for the app to be created."
+        )
+        parser.add_argument(
+            "--model",
+            type=str,
+            default="gpt-4-0613",
+            help="model to use. can also use gpt-3.5-turbo-0613",
+        )
+        parser.add_argument(
+            "--generate_folder_path",
+            type=str,
+            default="generated",
+            help="Path of the folder for generated code.",
+        )
+        parser.add_argument(
+            "--debug", type=bool, default=False, help="Enable or disable debug mode."
+        )
+        parser.add_argument(
+            "--backend",
+            choices=["openai", "hf"],
+            default="openai",
+            help="LLM backend to use",
+        )
+        parser.add_argument(
+            "--hf-model",
+            type=str,
+            help="Local path or HF repo id for transformers model",
+        )
+        parser.add_argument(
+            "--file-prompts-dir",
+            type=str,
+            default=".",
+            help="Directory containing per-file prompt markdown files",
+        )
+        parser.add_argument(
+            "--self-heal",
+            action="store_true",
+            help="Run generated code and attempt to install missing dependencies",
+        )
+        parser.add_argument(
+            "--venv-path",
+            type=str,
+            default=None,
+            help="Path to virtualenv for executing generated code",
+        )
+        parser.add_argument(
+            "--container-runtime",
+            type=str,
+            default=None,
+            help="Container runtime to use for execution",
+        )
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
@@ -44,11 +86,20 @@ if __name__ == "__main__":
             prompt = promptfile.read()
 
     print(prompt)
-    
+
     if args is None:
         # This is in case we're just calling the main function directly with a prompt
         main(prompt=prompt)
     else:
-        main(prompt=prompt, generate_folder_path=args.generate_folder_path, debug=args.debug,
-             model=args.model, backend=args.backend, hf_model=args.hf_model,
-             file_prompts_dir=args.file_prompts_dir)
+        main(
+            prompt=prompt,
+            generate_folder_path=args.generate_folder_path,
+            debug=args.debug,
+            model=args.model,
+            backend=args.backend,
+            hf_model=args.hf_model,
+            file_prompts_dir=args.file_prompts_dir,
+            self_heal=args.self_heal,
+            venv_path=args.venv_path,
+            container_runtime=args.container_runtime,
+        )
