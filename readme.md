@@ -84,6 +84,8 @@ python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-o
 # repeatedly loading the tokenizer and model from disk.
 # Chat responses are cached on disk. Set `SMOL_DEV_CACHE_PATH` to change
 # the cache location (defaults to `~/.smol_dev_cache`).
+# Set `SMOL_DEV_CACHE_TTL` for cache TTL in seconds (0 disables expiration;
+# unset defaults to no expiration).
 # if using LMStudio or Ollama set environment variables to point transformers to the model directory
 ```
 
