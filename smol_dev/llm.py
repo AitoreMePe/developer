@@ -50,6 +50,16 @@ def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "op
         if backend == "openai":
             if openai is None:
                 raise ImportError("openai package not available")
+
+            # configure default values for a local Ollama server if
+            # no OpenAI credentials have been provided
+            if hasattr(openai, "api_key"):
+                if not (openai.api_key or os.environ.get("OPENAI_API_KEY")):
+                    openai.api_key = "ollama"
+            if hasattr(openai, "api_base"):
+                if not os.environ.get("OPENAI_API_BASE"):
+                    openai.api_base = "http://localhost:11434/v1"
+
             response = openai.ChatCompletion.create(model=model, messages=messages, **kwargs)
             msg = response["choices"][0]["message"]
             if msg.get("content") is not None:

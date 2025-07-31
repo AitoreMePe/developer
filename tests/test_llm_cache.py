@@ -75,3 +75,27 @@ def test_generate_chat_cache_expires(tmp_path, monkeypatch):
 
     with shelve.open(str(cache_file)) as cache:
         assert len(cache) == 1
+
+
+def test_openai_defaults_to_ollama(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_BASE", raising=False)
+
+    captured = {}
+
+    def fake_create(**kwargs):
+        captured["key"] = fake_openai.api_key
+        captured["base"] = fake_openai.api_base
+        return {"choices": [{"message": {"content": "ok"}}]}
+
+    fake_openai = SimpleNamespace(
+        api_key=None,
+        api_base=None,
+        ChatCompletion=SimpleNamespace(create=fake_create),
+    )
+
+    with patch.object(llm, "openai", fake_openai):
+        llm.generate_chat(messages, "test-model")
+
+    assert captured["key"] == "ollama"
+    assert captured["base"] == "http://localhost:11434/v1"
