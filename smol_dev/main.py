@@ -1,6 +1,7 @@
 import sys
 import time
 import os
+from pathlib import Path
 
 from smol_dev.prompts import plan, specify_file_paths, generate_code_sync
 from smol_dev.utils import generate_folder, write_file
@@ -9,6 +10,47 @@ import argparse
 
 # model = "gpt-3.5-turbo-0613"
 defaultmodel = "gpt-4-0613"
+
+
+def watch_prompt_file(prompt_path: str | Path, callback, interval: float = 1.0) -> None:
+    """Watch ``prompt_path`` and call ``callback`` when it changes.
+
+    Uses ``watchdog`` if available, otherwise falls back to polling using
+    ``Path.stat``. Runs until interrupted.
+    """
+
+    path = Path(prompt_path)
+    try:
+        from watchdog.observers import Observer  # type: ignore
+        from watchdog.events import FileSystemEventHandler  # type: ignore
+
+        class Handler(FileSystemEventHandler):
+            def on_modified(self, event):
+                if Path(event.src_path) == path:
+                    callback()
+
+        observer = Observer()
+        observer.schedule(Handler(), str(path.parent), recursive=False)
+        observer.start()
+        try:
+            while True:
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            observer.stop()
+            observer.join()
+    except Exception:
+        last = path.stat().st_mtime
+        try:
+            while True:
+                time.sleep(interval)
+                current = path.stat().st_mtime
+                if current != last:
+                    last = current
+                    callback()
+        except KeyboardInterrupt:
+            pass
 
 
 def main(
@@ -206,20 +248,37 @@ if __name__ == "__main__":
             default=None,
             help="Container runtime to use for execution",
         )
+        parser.add_argument(
+            "--watch",
+            action="store_true",
+            help="Watch the prompt file and regenerate on changes",
+        )
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
 
     print(prompt)
 
-    main(
-        prompt=prompt,
-        generate_folder_path=args.generate_folder_path,
-        debug=args.debug,
-        backend=args.backend,
-        hf_model=args.hf_model,
-        file_prompts_dir=args.file_prompts_dir,
-        self_heal=args.self_heal,
-        venv_path=args.venv_path,
-        container_runtime=args.container_runtime,
-    )
+    def run_once():
+        ts = time.strftime("%Y%m%d-%H%M%S")
+        out_dir = (
+            args.generate_folder_path
+            if not args.watch
+            else f"{args.generate_folder_path}_{ts}"
+        )
+        main(
+            prompt=(Path(args.prompt).read_text() if args.watch else prompt),
+            generate_folder_path=out_dir,
+            debug=args.debug,
+            backend=args.backend,
+            hf_model=args.hf_model,
+            file_prompts_dir=args.file_prompts_dir,
+            self_heal=args.self_heal,
+            venv_path=args.venv_path,
+            container_runtime=args.container_runtime,
+        )
+
+    run_once()
+
+    if args.watch:
+        watch_prompt_file(args.prompt, run_once)
