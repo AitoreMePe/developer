@@ -31,8 +31,33 @@ def _parse_error(stderr: str) -> Dict[str, Any]:
     return result
 
 
-def _run(entrypoint: str, python_exec: str) -> subprocess.CompletedProcess:
-    """Run the entrypoint using the provided python executable."""
+def _run(
+    entrypoint: str,
+    python_exec: str,
+    container_runtime: Optional[str] = None,
+) -> subprocess.CompletedProcess:
+    """Run the entrypoint using the provided python executable.
+
+    If ``container_runtime`` is provided, the command is executed inside that
+    container with the current workspace mounted.
+    """
+
+    if container_runtime:
+        workdir = os.getcwd()
+        cmd = [
+            container_runtime,
+            "run",
+            "--rm",
+            "-v",
+            f"{workdir}:{workdir}",
+            "-w",
+            workdir,
+            "python:3",
+            python_exec,
+            entrypoint,
+        ]
+        return subprocess.run(cmd, capture_output=True, text=True)
+
     return subprocess.run([python_exec, entrypoint], capture_output=True, text=True)
 
 
@@ -52,8 +77,9 @@ def run_and_fix(
         Optional path to a virtualenv. If provided, ``python`` and ``pip`` from
         this environment will be used.
     container_runtime:
-        Optional container runtime. Currently unused but reserved for future
-        support.
+        Optional container runtime (e.g. ``"docker"`` or ``"podman"``). When
+        provided, the entry script is executed inside this container with the
+        current workspace mounted.
     retries:
         Number of times to retry execution after installing dependencies.
     """
@@ -71,7 +97,7 @@ def run_and_fix(
     else:
         pip_cmd = [pip_exec]
 
-    attempt = _run(entrypoint, python_exec)
+    attempt = _run(entrypoint, python_exec, container_runtime)
     error_info = _parse_error(attempt.stderr)
 
     pip_stdout: list[str] = []
@@ -86,7 +112,7 @@ def run_and_fix(
         pip_stderr.append(install_proc.stderr)
         retries -= 1
 
-        attempt = _run(entrypoint, python_exec)
+        attempt = _run(entrypoint, python_exec, container_runtime)
         error_info = _parse_error(attempt.stderr)
 
     result = {

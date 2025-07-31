@@ -294,6 +294,7 @@ things to try/would accept open issue discussions and PRs:
 - **self-heal** by running the code itself and use errors as information for reprompting
   - enable with `--self-heal` to execute the generated `main.py` after scaffolding
   - missing Python packages are installed automatically with `pip` inside the optional `--venv-path` environment
+  - run the self-heal step inside Docker or Podman with `--container-runtime docker`
 - **using anthropic as the coding layer**
   - you can run `modal run anthropic.py --prompt prompt.md --outputdir=anthropic` to try it
   - but it doesnt work because anthropic doesnt follow instructions to generate file code very well.
