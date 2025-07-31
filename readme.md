@@ -48,9 +48,13 @@ This is a community-driven project and is not affiliated with OpenAI. Generated 
            `HF_HOME` apuntando al directorio donde Ollama guarda sus modelos
            (por defecto `~/.ollama`).
   - Si recibes un error `404` al usar el backend OpenAI, normalmente significa
-    que el nombre de modelo no existe en esa API. Usa `--backend hf` con un
-    modelo local o configura `OPENAI_BASE_URL` para apuntar a un servidor
-    compatible que sirva dicho modelo.
+    que el nombre de modelo no existe en esa API. En ese caso se recomienda
+    usar `--backend hf` con un modelo local o configurar `OPENAI_BASE_URL` para
+    apuntar a un servidor compatible que sirva dicho modelo.
+  - Ejemplo rápido para usar un modelo local:
+    ```bash
+    python main.py --prompt "snake python game" --backend hf --hf-model path/to/qwen3-8b
+    ```
 4. Ejecuta el programa con tu propio prompt:
    ```bash
    python main.py "tu descripción aquí"
