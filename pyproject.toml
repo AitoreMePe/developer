@@ -13,6 +13,7 @@ openai = "^1.0.0"
 tenacity = "^8.2.2"
 agent-protocol = "^1.0.0"
 transformers = "^4.38.2"
+numpy = "<2"
 
 [build-system]
 requires = ["poetry-core"]

@@ -51,6 +51,10 @@ This is a community-driven project and is not affiliated with OpenAI. Generated 
     que el nombre de modelo no existe en esa API. En ese caso se recomienda
     usar `--backend hf` con un modelo local o configurar `OPENAI_BASE_URL` para
     apuntar a un servidor compatible que sirva dicho modelo.
+  - Si ves el error "A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x" es que alguna dependencia se compiló con otra versión. Instala una versión 1.x de numpy:
+    ```bash
+    pip install "numpy<2"
+    ```
   - Ejemplo rápido para usar un modelo local:
     ```bash
     python main.py --prompt "snake python game" --backend hf --hf-model path/to/qwen3-8b
