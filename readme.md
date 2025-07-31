@@ -38,15 +38,19 @@ This is a community-driven project and is not affiliated with OpenAI. Generated 
    - o indica un modelo local con el argumento `--backend hf --hf-model`.
      Si usas LMStudio u Ollama, define las variables de entorno que hagan que
      `transformers` apunte al directorio del modelo.
-   - para usar un modelo servido por Ollama puedes optar por dos vías:
+- para usar un modelo servido por Ollama puedes optar por dos vías:
       1. **Backend OpenAI**: configura
          `OPENAI_BASE_URL=http://localhost:11434/v1` (o `OPENAI_API_BASE`
          para versiones antiguas) y cualquier `OPENAI_API_KEY` y ejecuta
-         normalmente con `--backend openai`.
-       2. **Backend HF**: indica la ruta local del modelo con
-          `--backend hf --hf-model` y exporta `TRANSFORMERS_CACHE` o
-          `HF_HOME` apuntando al directorio donde Ollama guarda sus modelos
-          (por defecto `~/.ollama`).
+          normalmente con `--backend openai`.
+        2. **Backend HF**: indica la ruta local del modelo con
+           `--backend hf --hf-model` y exporta `TRANSFORMERS_CACHE` o
+           `HF_HOME` apuntando al directorio donde Ollama guarda sus modelos
+           (por defecto `~/.ollama`).
+  - Si recibes un error `404` al usar el backend OpenAI, normalmente significa
+    que el nombre de modelo no existe en esa API. Usa `--backend hf` con un
+    modelo local o configura `OPENAI_BASE_URL` para apuntar a un servidor
+    compatible que sirva dicho modelo.
 4. Ejecuta el programa con tu propio prompt:
    ```bash
    python main.py "tu descripción aquí"
