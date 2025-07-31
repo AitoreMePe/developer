@@ -23,6 +23,8 @@ def main(
     venv_path: Optional[str] = None,
     container_runtime: Optional[str] = None,
 ):
+    if backend == "hf" and hf_model is None:
+        raise ValueError("hf_model must be specified when using the hf backend")
     # create generateFolder folder if doesnt exist
     generate_folder(generate_folder_path)
 
