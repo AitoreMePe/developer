@@ -1,6 +1,8 @@
 import sys
+import time
+from pathlib import Path
 
-from smol_dev.main import main
+from smol_dev.main import main, watch_prompt_file
 import argparse
 
 
@@ -76,6 +78,11 @@ if __name__ == "__main__":
             default=None,
             help="Container runtime to use for execution",
         )
+        parser.add_argument(
+            "--watch",
+            action="store_true",
+            help="Watch the prompt file and regenerate on changes",
+        )
         args = parser.parse_args()
         if args.prompt:
             prompt = args.prompt
@@ -91,15 +98,26 @@ if __name__ == "__main__":
         # This is in case we're just calling the main function directly with a prompt
         main(prompt=prompt)
     else:
-        main(
-            prompt=prompt,
-            generate_folder_path=args.generate_folder_path,
-            debug=args.debug,
-            model=args.model,
-            backend=args.backend,
-            hf_model=args.hf_model,
-            file_prompts_dir=args.file_prompts_dir,
-            self_heal=args.self_heal,
-            venv_path=args.venv_path,
-            container_runtime=args.container_runtime,
-        )
+        def run_once():
+            ts = time.strftime("%Y%m%d-%H%M%S")
+            out_dir = (
+                args.generate_folder_path
+                if not args.watch
+                else f"{args.generate_folder_path}_{ts}"
+            )
+            main(
+                prompt=(Path(args.prompt).read_text() if args.watch else prompt),
+                generate_folder_path=out_dir,
+                debug=args.debug,
+                model=args.model,
+                backend=args.backend,
+                hf_model=args.hf_model,
+                file_prompts_dir=args.file_prompts_dir,
+                self_heal=args.self_heal,
+                venv_path=args.venv_path,
+                container_runtime=args.container_runtime,
+            )
+
+        run_once()
+        if args.watch:
+            watch_prompt_file(args.prompt, run_once)

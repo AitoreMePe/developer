@@ -78,6 +78,7 @@ python main.py "a HTML/JS/CSS Tic Tac Toe Game" # defaults to gpt-4-0613
 python main.py --prompt prompt.md # for longer prompts, move them into a markdown file
 python main.py --prompt prompt.md --debug True # for debugging
 python main.py --prompt prompt.md --file-prompts-dir ./my_prompts # use per-file prompt overrides
+python main.py --prompt prompt.md --watch # regenerate whenever the prompt changes
 # using a local HuggingFace model
 python main.py "a HTML/JS/CSS Tic Tac Toe Game" --backend hf --hf-model <model-or-path>
 # Models loaded via the hf backend are cached for the life of the process to avoid
@@ -298,4 +299,5 @@ things to try/would accept open issue discussions and PRs:
   - you can run `modal run anthropic.py --prompt prompt.md --outputdir=anthropic` to try it
   - but it doesnt work because anthropic doesnt follow instructions to generate file code very well.
 - **make agents that autonomously run this code in a loop/watch the prompt file** and regenerate code each time, on a new git branch
+  - enable with `--watch` to automatically rerun generation whenever the prompt file changes
   - the code could be generated on 5 simultaneous git branches and checking their output would just involve switching git branches
