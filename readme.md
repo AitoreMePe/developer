@@ -11,6 +11,40 @@
 <a href="https://twitter.com/morph_labs/status/1689321673151979536"><img src="https://avatars.githubusercontent.com/u/136536927?s=40&v=4" alt="Morph"></img> Morph
 </a>
 
+## Cómo ejecutar
+
+1. Clona este repositorio y entra en la carpeta:
+   ```bash
+   git clone https://github.com/smol-ai/developer.git
+   cd developer
+   ```
+2. Instala las dependencias (asegúrate de tener [Poetry](https://python-poetry.org/)):
+   ```bash
+   poetry install
+   ```
+3. Configura tu entorno:
+   - exporta tu clave de OpenAI para usar el backend por defecto. Si no la
+     defines, el programa intentará conectarse a un servidor Ollama en
+     `http://localhost:11434/v1` usando la clave ficticia `ollama`:
+    ```bash
+    export OPENAI_API_KEY=sk-...
+    ```
+   - o indica un modelo local con el argumento `--backend hf --hf-model`.
+     Si usas LMStudio u Ollama, define las variables de entorno que hagan que
+     `transformers` apunte al directorio del modelo.
+   - para usar un modelo servido por Ollama puedes optar por dos vías:
+       1. **Backend OpenAI**: configura
+          `OPENAI_API_BASE=http://localhost:11434/v1` y cualquier
+          `OPENAI_API_KEY` y ejecuta normalmente con `--backend openai`.
+       2. **Backend HF**: indica la ruta local del modelo con
+          `--backend hf --hf-model` y exporta `TRANSFORMERS_CACHE` o
+          `HF_HOME` apuntando al directorio donde Ollama guarda sus modelos
+          (por defecto `~/.ollama`).
+4. Ejecuta el programa con tu propio prompt:
+   ```bash
+   python main.py "tu descripción aquí"
+   ```
+
 ***Human-centric & Coherent Whole Program Synthesis*** aka your own personal junior developer
 
 > [Build the thing that builds the thing!](https://twitter.com/swyx/status/1657578738345979905) a `smol dev` for every dev in every situation
