@@ -26,10 +26,8 @@ This is a community-driven project and is not affiliated with OpenAI. Generated 
    ```bash
    poetry install
    ```
-   Este proyecto espera `openai==0.27.8`. Si instalas las dependencias manualmente,
-   asegúrate de fijar esa versión (o simplemente usa `poetry install`, que la deja
-   bloqueada). Las versiones `openai` &ge;1.0 no están soportadas y pueden provocar
-   errores `APIRemovedInV1`.
+   Este proyecto usa `openai>=1.0`. Si instalas las dependencias manualmente,
+   asegúrate de incluir una versión 1.x o posterior.
 3. Configura tu entorno:
    - exporta tu clave de OpenAI para usar el backend por defecto. Si no la
      defines, el programa intentará conectarse a un servidor Ollama en
