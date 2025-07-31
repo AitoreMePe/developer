@@ -24,7 +24,9 @@ def test_generate_chat_caches(tmp_path, monkeypatch):
         call_count["n"] += 1
         return {"choices": [{"message": {"content": "hello"}}]}
 
-    fake_openai = SimpleNamespace(ChatCompletion=SimpleNamespace(create=fake_create))
+    fake_openai = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=fake_create))
+    )
 
     with patch.object(llm, "openai", fake_openai):
         result1 = llm.generate_chat(messages, "test-model")
@@ -37,7 +39,9 @@ def test_generate_chat_caches(tmp_path, monkeypatch):
     def should_not_call(**kwargs):
         raise AssertionError("backend called")
 
-    fake_openai2 = SimpleNamespace(ChatCompletion=SimpleNamespace(create=should_not_call))
+    fake_openai2 = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=should_not_call))
+    )
 
     with patch.object(llm, "openai", fake_openai2):
         result2 = llm.generate_chat(messages, "test-model")
@@ -59,7 +63,9 @@ def test_generate_chat_cache_expires(tmp_path, monkeypatch):
         call_count["n"] += 1
         return {"choices": [{"message": {"content": "bye"}}]}
 
-    fake_openai = SimpleNamespace(ChatCompletion=SimpleNamespace(create=fake_create))
+    fake_openai = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=fake_create))
+    )
 
     with patch.object(llm, "openai", fake_openai):
         result1 = llm.generate_chat(messages, "test-model")
@@ -93,7 +99,7 @@ def test_openai_defaults_to_ollama(monkeypatch, tmp_path):
     fake_openai = SimpleNamespace(
         api_key=None,
         api_base=None,
-        ChatCompletion=SimpleNamespace(create=fake_create),
+        chat=SimpleNamespace(completions=SimpleNamespace(create=fake_create)),
     )
 
     with patch.object(llm, "openai", fake_openai):
