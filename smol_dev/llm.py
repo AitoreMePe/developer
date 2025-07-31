@@ -71,10 +71,18 @@ def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "op
                 elif not os.environ.get("OPENAI_API_BASE") and not getattr(openai, "api_base", None):
                     openai.api_base = "http://localhost:11434/v1"
 
-            if hasattr(openai, "chat") and hasattr(openai.chat, "completions"):
-                response = openai.chat.completions.create(model=model, messages=messages, **kwargs)
-            else:  # pragma: no cover - openai <1.x path tested separately
-                response = openai.ChatCompletion.create(model=model, messages=messages, **kwargs)
+            try:
+                if hasattr(openai, "chat") and hasattr(openai.chat, "completions"):
+                    response = openai.chat.completions.create(model=model, messages=messages, **kwargs)
+                else:  # pragma: no cover - openai <1.x path tested separately
+                    response = openai.ChatCompletion.create(model=model, messages=messages, **kwargs)
+            except Exception as exc:  # handle NotFoundError for missing models
+                if exc.__class__.__name__ == "NotFoundError":
+                    raise ValueError(
+                        f"Model '{model}' not found on OpenAI backend. "
+                        "Use --backend hf or set OPENAI_BASE_URL to a compatible server."
+                    ) from exc
+                raise
 
             if hasattr(response, "model_dump"):
                 response = response.model_dump()

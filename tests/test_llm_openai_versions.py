@@ -2,6 +2,7 @@ import os
 import sys
 from types import SimpleNamespace
 from unittest.mock import patch
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -49,3 +50,24 @@ def test_generate_chat_openai_version_detection(tmp_path, monkeypatch):
         result2 = llm.generate_chat(messages, "model")
     assert result2 == "two"
     assert called["v2"]
+
+
+def test_generate_chat_openai_not_found(tmp_path, monkeypatch):
+    cache = tmp_path / "cache_nf"
+    monkeypatch.setattr(llm, "_cache_path", str(cache))
+
+    NotFoundError = type("NotFoundError", (Exception,), {})
+
+    def create_error(**kwargs):
+        raise NotFoundError("404")
+
+    fake_openai = SimpleNamespace(
+        api_key="key",
+        api_base="base",
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create_error)),
+    )
+
+    with patch.object(llm, "openai", fake_openai):
+        with pytest.raises(ValueError) as exc:
+            llm.generate_chat(messages, "model")
+    assert "not found" in str(exc.value).lower()
