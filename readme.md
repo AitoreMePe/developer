@@ -145,7 +145,7 @@ pip install smol_dev
 Here you can basically look at the contents of `main.py` as our "documentation" of how you can use these functions and prompts in your own app:
 
 ```python
-from smol_dev.prompts import plan, specify_file_paths, generate_code_sync
+from smol_dev import plan, specify_file_paths, generate_code_sync
 
 prompt = "a HTML/JS/CSS Tic Tac Toe Game"
 
