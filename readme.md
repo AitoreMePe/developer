@@ -22,6 +22,9 @@
    ```bash
    poetry install
    ```
+   Esto fija todas las versiones, incluida `openai==0.27.8`. Si instalas las
+   dependencias manualmente asegúrate de usar esa versión, ya que OpenAI
+   `>=1.0` no está soportado y puede provocar errores `APIRemovedInV1`.
 3. Configura tu entorno:
    - exporta tu clave de OpenAI para usar el backend por defecto. Si no la
      defines, el programa intentará conectarse a un servidor Ollama en
