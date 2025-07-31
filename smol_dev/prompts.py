@@ -103,7 +103,11 @@ def specify_file_paths(prompt: str, plan: str, model: str = 'gpt-3.5-turbo-0613'
 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def plan(prompt: str, stream_handler: Optional[Callable[[bytes], None]] = None, model: str='gpt-3.5-turbo-0613', extra_messages: List[Any] = [], backend: str = "openai"):
+def plan(prompt: str, stream_handler: Optional[Callable[[bytes], None]] = None,
+         model: str = 'gpt-3.5-turbo-0613',
+         extra_messages: Optional[List[Any]] = None,
+         backend: str = "openai"):
+    extra_messages = extra_messages or []
     messages = [
             {
                 "role": "system",
