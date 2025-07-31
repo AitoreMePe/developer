@@ -1,4 +1,6 @@
+import os
 import subprocess
+import sys
 from types import SimpleNamespace
 
 import smol_dev.self_heal as self_heal
@@ -14,7 +16,7 @@ def make_cp(returncode=0, stdout="", stderr=""):
 def test_run_and_fix_installs_missing_package(monkeypatch):
     calls = {"runs": 0, "pip": 0}
 
-    def fake_run(entry, python_exec):
+    def fake_run(entry, python_exec, container_runtime=None):
         calls["runs"] += 1
         if calls["runs"] == 1:
             return make_cp(1, stderr="ModuleNotFoundError: No module named 'foo'")
@@ -37,7 +39,7 @@ def test_run_and_fix_installs_missing_package(monkeypatch):
 
 
 def test_run_and_fix_syntax_error(monkeypatch):
-    def fake_run(entry, python_exec):
+    def fake_run(entry, python_exec, container_runtime=None):
         return make_cp(1, stderr="SyntaxError: invalid syntax")
 
     def should_not_call(*a, **k):
@@ -54,7 +56,7 @@ def test_run_and_fix_syntax_error(monkeypatch):
 def test_run_and_fix_two_missing_packages(monkeypatch):
     calls = {"runs": 0, "pip": []}
 
-    def fake_run(entry, python_exec):
+    def fake_run(entry, python_exec, container_runtime=None):
         calls["runs"] += 1
         if calls["runs"] == 1:
             return make_cp(1, stderr="ModuleNotFoundError: No module named 'foo'")
@@ -77,4 +79,33 @@ def test_run_and_fix_two_missing_packages(monkeypatch):
     assert calls["runs"] == 3
     assert "foo" in result.get("pip_stdout", "")
     assert "bar" in result.get("pip_stdout", "")
+
+
+def test_container_runtime_launch(monkeypatch):
+    cmd_capture = {}
+
+    def fake_run(cmd, capture_output=True, text=True):
+        cmd_capture["cmd"] = cmd
+        return make_cp(stdout="ok")
+
+    monkeypatch.setattr(self_heal, "subprocess", SimpleNamespace(run=fake_run))
+
+    result = self_heal.run_and_fix("entry.py", container_runtime="docker")
+
+    cwd = os.getcwd()
+    expected = [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        f"{cwd}:{cwd}",
+        "-w",
+        cwd,
+        "python:3",
+        sys.executable,
+        "entry.py",
+    ]
+
+    assert cmd_capture["cmd"] == expected
+    assert result["stdout"] == "ok"
 
