@@ -1,11 +1,11 @@
-from smol_dev.prompts import (
+from .prompts import (
     file_paths,
     specify_file_paths,
     plan,
     generate_code,
     generate_code_sync,
 )
-from smol_dev.self_heal import run_and_fix
+from .self_heal import run_and_fix
 
 __all__ = [
     "file_paths",
