@@ -60,7 +60,13 @@ def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "op
                 if not os.environ.get("OPENAI_API_BASE"):
                     openai.api_base = "http://localhost:11434/v1"
 
-            response = openai.ChatCompletion.create(model=model, messages=messages, **kwargs)
+            if hasattr(openai, "ChatCompletion"):
+                response = openai.ChatCompletion.create(model=model, messages=messages, **kwargs)
+            else:  # pragma: no cover - openai 1.x path tested separately
+                response = openai.chat.completions.create(model=model, messages=messages, **kwargs)
+
+            if hasattr(response, "model_dump"):
+                response = response.model_dump()
             msg = response["choices"][0]["message"]
             if msg.get("content") is not None:
                 result = msg["content"]
