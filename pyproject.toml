@@ -23,6 +23,6 @@ build-backend = "poetry.core.masonry.api"
 src = "src.__main__:main"
 api = "smol_dev.api:main"
 
-[project.urls]
+[tool.poetry.urls]
 "Homepage" = "https://github.com/smol-ai/developer"
 "Bug Tracker" = "https://github.com/smol-ai/developer/issues"
