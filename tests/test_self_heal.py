@@ -50,3 +50,31 @@ def test_run_and_fix_syntax_error(monkeypatch):
     assert result["error"]["error_type"] == "SyntaxError"
     assert "pip_stdout" not in result
 
+
+def test_run_and_fix_two_missing_packages(monkeypatch):
+    calls = {"runs": 0, "pip": []}
+
+    def fake_run(entry, python_exec):
+        calls["runs"] += 1
+        if calls["runs"] == 1:
+            return make_cp(1, stderr="ModuleNotFoundError: No module named 'foo'")
+        if calls["runs"] == 2:
+            return make_cp(1, stderr="ModuleNotFoundError: No module named 'bar'")
+        return make_cp(stdout="done")
+
+    def fake_subprocess_run(cmd, capture_output=True, text=True):
+        pkg = cmd[-1]
+        calls["pip"].append(pkg)
+        return make_cp(stdout=f"installed {pkg}\n")
+
+    monkeypatch.setattr(self_heal, "_run", fake_run)
+    monkeypatch.setattr(self_heal, "subprocess", SimpleNamespace(run=fake_subprocess_run))
+
+    result = self_heal.run_and_fix("entry.py", retries=2)
+
+    assert result["stdout"] == "done"
+    assert calls["pip"] == ["foo", "bar"]
+    assert calls["runs"] == 3
+    assert "foo" in result.get("pip_stdout", "")
+    assert "bar" in result.get("pip_stdout", "")
+

@@ -74,25 +74,30 @@ def run_and_fix(
     attempt = _run(entrypoint, python_exec)
     error_info = _parse_error(attempt.stderr)
 
-    if attempt.returncode != 0 and error_info.get("missing_package") and retries > 0:
+    pip_stdout: list[str] = []
+    pip_stderr: list[str] = []
+
+    while attempt.returncode != 0 and error_info.get("missing_package") and retries > 0:
         package = error_info["missing_package"]
         install_proc = subprocess.run(
             pip_cmd + ["install", package], capture_output=True, text=True
         )
+        pip_stdout.append(install_proc.stdout)
+        pip_stderr.append(install_proc.stderr)
+        retries -= 1
+
         attempt = _run(entrypoint, python_exec)
         error_info = _parse_error(attempt.stderr)
-        return {
-            "stdout": attempt.stdout,
-            "stderr": attempt.stderr,
-            "returncode": attempt.returncode,
-            "error": error_info,
-            "pip_stdout": install_proc.stdout,
-            "pip_stderr": install_proc.stderr,
-        }
 
-    return {
+    result = {
         "stdout": attempt.stdout,
         "stderr": attempt.stderr,
         "returncode": attempt.returncode,
         "error": error_info,
     }
+
+    if pip_stdout or pip_stderr:
+        result["pip_stdout"] = "".join(pip_stdout)
+        result["pip_stderr"] = "".join(pip_stderr)
+
+    return result
