@@ -11,6 +11,10 @@
 <a href="https://twitter.com/morph_labs/status/1689321673151979536"><img src="https://avatars.githubusercontent.com/u/136536927?s=40&v=4" alt="Morph"></img> Morph
 </a>
 
+## Disclaimer
+
+This is a community-driven project and is not affiliated with OpenAI. Generated code may be incomplete and should be reviewed before use.
+
 ## Cómo ejecutar
 
 1. Clona este repositorio y entra en la carpeta:
