@@ -77,9 +77,11 @@ def test_generate_chat_cache_expires(tmp_path, monkeypatch):
         assert len(cache) == 1
 
 
-def test_openai_defaults_to_ollama(monkeypatch):
+def test_openai_defaults_to_ollama(monkeypatch, tmp_path):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
+    cache_file = tmp_path / "ollama-cache"
+    monkeypatch.setattr(llm, "_cache_path", str(cache_file))
 
     captured = {}
 
@@ -99,3 +101,52 @@ def test_openai_defaults_to_ollama(monkeypatch):
 
     assert captured["key"] == "ollama"
     assert captured["base"] == "http://localhost:11434/v1"
+
+
+def test_hf_caching(monkeypatch, tmp_path):
+    cache_file = tmp_path / "hf-cache"
+    monkeypatch.setenv("SMOL_DEV_CACHE_PATH", str(cache_file))
+    monkeypatch.setattr(llm, "_cache_path", str(cache_file))
+    monkeypatch.setattr(llm, "_hf_models", {})
+
+    calls = {"load": 0, "generate": 0}
+
+    class FakeTokenizer:
+        @classmethod
+        def from_pretrained(cls, name):
+            calls["load"] += 1
+            return cls()
+
+        def encode(self, text, return_tensors=None):
+            return text
+
+        def decode(self, tokens, skip_special_tokens=True):
+            if isinstance(tokens, list):
+                return tokens[0]
+            return tokens
+
+    class FakeModel:
+        @classmethod
+        def from_pretrained(cls, name):
+            calls["load"] += 1
+            return cls()
+
+        def generate(self, input_ids, max_new_tokens=256):
+            calls["generate"] += 1
+            return [input_ids + " there"]
+
+    monkeypatch.setattr(llm, "AutoTokenizer", FakeTokenizer, raising=False)
+    monkeypatch.setattr(llm, "AutoModelForCausalLM", FakeModel, raising=False)
+
+    result1 = llm.generate_chat(messages, "fake-model", backend="hf")
+    assert result1 == "there"
+    assert calls["load"] == 2
+    assert calls["generate"] == 1
+
+    result2 = llm.generate_chat(messages, "fake-model", backend="hf")
+    assert result2 == "there"
+    assert calls["load"] == 2
+    assert calls["generate"] == 1
+
+    with shelve.open(str(cache_file)) as cache:
+        assert len(cache) == 1
