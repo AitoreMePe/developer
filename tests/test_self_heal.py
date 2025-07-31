@@ -37,18 +37,28 @@ def test_run_and_fix_installs_missing_package(monkeypatch):
 
 
 def test_run_and_fix_syntax_error(monkeypatch):
+    calls = {"gen": 0, "runs": 0}
+
     def fake_run(entry, python_exec):
+        calls["runs"] += 1
         return make_cp(1, stderr="SyntaxError: invalid syntax")
+
+    def fake_generate(*a, **k):
+        calls["gen"] += 1
+        return "bad"
 
     def should_not_call(*a, **k):
         raise AssertionError("pip install should not run")
 
     monkeypatch.setattr(self_heal, "_run", fake_run)
+    monkeypatch.setattr(self_heal.prompts, "generate_code_sync", fake_generate)
     monkeypatch.setattr(self_heal, "subprocess", SimpleNamespace(run=should_not_call))
 
-    result = self_heal.run_and_fix("entry.py")
+    result = self_heal.run_and_fix("entry.py", fix_retries=1)
     assert result["error"]["error_type"] == "SyntaxError"
     assert "pip_stdout" not in result
+    assert calls["gen"] == 1
+    assert calls["runs"] == 2
 
 
 def test_run_and_fix_two_missing_packages(monkeypatch):
@@ -77,4 +87,35 @@ def test_run_and_fix_two_missing_packages(monkeypatch):
     assert calls["runs"] == 3
     assert "foo" in result.get("pip_stdout", "")
     assert "bar" in result.get("pip_stdout", "")
+
+
+def test_run_and_fix_llm_fix(monkeypatch, tmp_path):
+    file_path = tmp_path / "bad.py"
+    file_path.write_text("print(\n")
+
+    calls = {"runs": 0, "gen": 0}
+
+    def fake_run(entry, python_exec):
+        calls["runs"] += 1
+        if calls["runs"] == 1:
+            return make_cp(1, stderr="IndentationError: unexpected indent")
+        return make_cp(stdout="ok")
+
+    def fake_generate(prompt, plan, current_file, **kwargs):
+        calls["gen"] += 1
+        fp = kwargs.get("file_prompt", "")
+        assert "unexpected indent" in fp
+        assert "print(" in fp
+        return "print('fixed')\n"
+
+    monkeypatch.setattr(self_heal, "_run", fake_run)
+    monkeypatch.setattr(self_heal.prompts, "generate_code_sync", fake_generate)
+    monkeypatch.setattr(self_heal, "subprocess", SimpleNamespace(run=lambda *a, **k: make_cp()))
+
+    result = self_heal.run_and_fix(str(file_path), fix_retries=1)
+
+    assert result["stdout"] == "ok"
+    assert file_path.read_text() == "print('fixed')\n"
+    assert calls["gen"] == 1
+    assert calls["runs"] == 2
 

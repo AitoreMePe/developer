@@ -4,6 +4,8 @@ import subprocess
 import sys
 from typing import Optional, Dict, Any
 
+import smol_dev.prompts as prompts
+
 
 def _parse_error(stderr: str) -> Dict[str, Any]:
     """Parse stderr for common Python errors.
@@ -36,11 +38,29 @@ def _run(entrypoint: str, python_exec: str) -> subprocess.CompletedProcess:
     return subprocess.run([python_exec, entrypoint], capture_output=True, text=True)
 
 
+def _fix_file_with_llm(file_path: str, error_message: str) -> str:
+    """Use the LLM to fix a file given an error message."""
+    original = ""
+    try:
+        with open(file_path, "r", encoding="utf-8") as fh:
+            original = fh.read()
+    except Exception:
+        pass
+    file_prompt = (
+        f"The following file has an error:\n{error_message}\n\n" f"{original}\n"
+        "Please return the corrected file contents only."
+    )
+    return prompts.generate_code_sync(
+        "fix file", "fix", file_path, file_prompt=file_prompt
+    )
+
+
 def run_and_fix(
     entrypoint: str,
     env_path: Optional[str] = None,
     container_runtime: Optional[str] = None,
     retries: int = 1,
+    fix_retries: int = 1,
 ) -> Dict[str, Any]:
     """Execute ``entrypoint`` and attempt to fix missing dependencies.
 
@@ -56,6 +76,8 @@ def run_and_fix(
         support.
     retries:
         Number of times to retry execution after installing dependencies.
+    fix_retries:
+        Number of times to attempt LLM-based fixes for syntax errors.
     """
     python_exec = (
         os.path.join(env_path, "bin", "python") if env_path else sys.executable
@@ -77,14 +99,34 @@ def run_and_fix(
     pip_stdout: list[str] = []
     pip_stderr: list[str] = []
 
-    while attempt.returncode != 0 and error_info.get("missing_package") and retries > 0:
-        package = error_info["missing_package"]
-        install_proc = subprocess.run(
-            pip_cmd + ["install", package], capture_output=True, text=True
+    while attempt.returncode != 0 and (
+        (error_info.get("missing_package") and retries > 0)
+        or (
+            error_info.get("error_type") in ("SyntaxError", "IndentationError")
+            and fix_retries > 0
         )
-        pip_stdout.append(install_proc.stdout)
-        pip_stderr.append(install_proc.stderr)
-        retries -= 1
+    ):
+        if error_info.get("missing_package") and retries > 0:
+            package = error_info["missing_package"]
+            install_proc = subprocess.run(
+                pip_cmd + ["install", package], capture_output=True, text=True
+            )
+            pip_stdout.append(install_proc.stdout)
+            pip_stderr.append(install_proc.stderr)
+            retries -= 1
+        elif (
+            error_info.get("error_type") in ("SyntaxError", "IndentationError")
+            and fix_retries > 0
+        ):
+            fixed = _fix_file_with_llm(entrypoint, attempt.stderr)
+            try:
+                with open(entrypoint, "w", encoding="utf-8") as fh:
+                    fh.write(fixed)
+            except Exception:
+                pass
+            fix_retries -= 1
+        else:
+            break
 
         attempt = _run(entrypoint, python_exec)
         error_info = _parse_error(attempt.stderr)
