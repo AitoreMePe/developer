@@ -109,6 +109,30 @@ def test_openai_defaults_to_ollama(monkeypatch, tmp_path):
     assert captured["base"] == "http://localhost:11434/v1"
 
 
+def test_openai_base_url_env(monkeypatch, tmp_path):
+    monkeypatch.setenv("OPENAI_BASE_URL", "http://testserver/v1")
+    monkeypatch.delenv("OPENAI_API_BASE", raising=False)
+    cache_file = tmp_path / "url-cache"
+    monkeypatch.setattr(llm, "_cache_path", str(cache_file))
+
+    captured = {}
+
+    def fake_create(**kwargs):
+        captured["base"] = fake_openai.base_url
+        return {"choices": [{"message": {"content": "ok"}}]}
+
+    fake_openai = SimpleNamespace(
+        api_key=None,
+        base_url=None,
+        chat=SimpleNamespace(completions=SimpleNamespace(create=fake_create)),
+    )
+
+    with patch.object(llm, "openai", fake_openai):
+        llm.generate_chat(messages, "test-model")
+
+    assert captured["base"] == "http://testserver/v1"
+
+
 def test_hf_caching(monkeypatch, tmp_path):
     cache_file = tmp_path / "hf-cache"
     monkeypatch.setenv("SMOL_DEV_CACHE_PATH", str(cache_file))

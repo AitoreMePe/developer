@@ -56,8 +56,19 @@ def generate_chat(messages: List[Dict[str, str]], model: str, backend: str = "op
             if hasattr(openai, "api_key"):
                 if not (openai.api_key or os.environ.get("OPENAI_API_KEY")):
                     openai.api_key = "ollama"
+
+            base_env = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
+
+            if hasattr(openai, "base_url"):
+                if base_env:
+                    openai.base_url = base_env
+                elif not getattr(openai, "base_url", None):
+                    openai.base_url = "http://localhost:11434/v1"
+
             if hasattr(openai, "api_base"):
-                if not os.environ.get("OPENAI_API_BASE"):
+                if base_env:
+                    openai.api_base = base_env
+                elif not os.environ.get("OPENAI_API_BASE") and not getattr(openai, "api_base", None):
                     openai.api_base = "http://localhost:11434/v1"
 
             if hasattr(openai, "chat") and hasattr(openai.chat, "completions"):

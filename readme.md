@@ -39,9 +39,10 @@ This is a community-driven project and is not affiliated with OpenAI. Generated 
      Si usas LMStudio u Ollama, define las variables de entorno que hagan que
      `transformers` apunte al directorio del modelo.
    - para usar un modelo servido por Ollama puedes optar por dos vías:
-       1. **Backend OpenAI**: configura
-          `OPENAI_API_BASE=http://localhost:11434/v1` y cualquier
-          `OPENAI_API_KEY` y ejecuta normalmente con `--backend openai`.
+      1. **Backend OpenAI**: configura
+         `OPENAI_BASE_URL=http://localhost:11434/v1` (o `OPENAI_API_BASE`
+         para versiones antiguas) y cualquier `OPENAI_API_KEY` y ejecuta
+         normalmente con `--backend openai`.
        2. **Backend HF**: indica la ruta local del modelo con
           `--backend hf --hf-model` y exporta `TRANSFORMERS_CACHE` o
           `HF_HOME` apuntando al directorio donde Ollama guarda sus modelos
